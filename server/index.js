@@ -1,12 +1,33 @@
-import  express from "express";
+import express from "express";
 
-const app = express()
+const app = express();
+const port = 3000; //add your port here
+const PUBLISHABLE_KEY = "ADD_PUBLISHABLE KEY HERE";
+const SECRET_KEY = "ADD_SECRETE KEY HERE";
+import Stripe from "stripe";
+  
+//Confirm the API version from your stripe dashboard
+const stripe = Stripe(SECRET_KEY, { apiVersion: "2020-08-27" });
 
-const port = 3000
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});
 
-const PUBLISHABLE_KEY ="pk_test_51IlaJaSE2LpFM67yMcRTvedd9N67cLfodcotYP4OMd4CgeVYSwaxDLbDXA9eGnAZQPUTVk4gvj6LJFkMrrVDFmtQ00wBSSgD75";
-const SECRET_KEY = "sk_test_51IlaJaSE2LpFM67yrMb45HitDsgj5smItff791KMMDV6NxrvnecIMPL0xkA91f9WovuXDquTxV8IbaExVKGeDXi000s7lGf7NI";
+app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 1099, //lowest denomination of particular currency
+      currency: "usd",
+      payment_method_types: ["card"], //by default
+    });
 
-app.listen(port,()=> {
-    console.log(`server is running at http://localhost:${port}`);
-})
+    const clientSecret = paymentIntent.client_secret;
+
+    res.json({
+      clientSecret: clientSecret,
+    });
+  } catch (e) {
+    console.log(e.message);
+    res.json({ error: e.message });
+  }
+});

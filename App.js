@@ -35,7 +35,7 @@ export default function App() {
     <>
       <Provider store={store}>
       <NhostProvider nhost={nhost}>
-        {isAuthenticated && <StackNavigator /> }
+        {isAuthenticated && <StackNavigator />  }
          </NhostProvider>
       </Provider>
     </>

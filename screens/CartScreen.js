@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, ScrollView, Pressable } from "react-native";
-import React from "react";
+import { StyleSheet, Text, View, ScrollView, Pressable,Alert,Modal } from "react-native";
+import React, { useState } from "react";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +10,9 @@ import {
   incrementQuantity,
   removeFromCart,
 } from "../redux/CartReducer";
+import { StripeProvider } from '@stripe/stripe-react-native'
+import { CardField, useConfirmPayment } from "@stripe/stripe-react-native";
+import StripeApp from "./StripeApp"
 
 const CartScreen = () => {
   const navigation = useNavigation();
@@ -19,6 +22,9 @@ const CartScreen = () => {
     .map((item) => item.price * item.quantity)
     .reduce((curr, prev) => curr + prev, 0);
   const dispatch = useDispatch();
+  const [modalVisible, setModalVisible] = useState(false);
+
+  console.log(total);
   const instructions = [
     {
       id: "0",
@@ -391,21 +397,36 @@ const CartScreen = () => {
           </View>
 
           <Pressable
-          onPress={() => {
-            navigation.navigate("Loading");
-            dispatch(cleanCart());
-          }}
-            style={{
-              backgroundColor: "#00A877",
-              padding: 14,
-              width: 200,
-              borderRadius: 6,
-            }}
-          >
-            <Text style={{color:"white",fontSize:16,fontWeight:"bold",textAlign:"center"}}>Proceed To pay</Text>
+          style={[styles.button, styles.buttonOpen]}
+        onPress={() => setModalVisible(true)}>
+        <Text style={styles.textStyle}>Proceed To Pay</Text>
           </Pressable>
         </Pressable>
       )}
+      <View style={styles.centeredView}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+          <StripeProvider publishableKey='pk_test_51IlaJaSE2LpFM67yMcRTvedd9N67cLfodcotYP4OMd4CgeVYSwaxDLbDXA9eGnAZQPUTVk4gvj6LJFkMrrVDFmtQ00wBSSgD75'>
+             <StripeApp total={total} />
+          </StripeProvider>
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setModalVisible(!modalVisible)}>
+              <Text style={styles.textStyle}>Close Payment</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </View>
+
               
     </>
   );
@@ -413,4 +434,45 @@ const CartScreen = () => {
 
 export default CartScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+    width:"100%"
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    width:"100%",
+    height:500,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#00A877',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+});
